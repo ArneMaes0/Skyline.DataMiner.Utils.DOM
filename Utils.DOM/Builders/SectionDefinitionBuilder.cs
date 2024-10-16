@@ -70,7 +70,7 @@
 		/// <returns>The builder instance.</returns>
 		public T WithID(Guid id)
 		{
-			return WithID(new SectionDefinitionID(id));
+			return WithID(new SectionDefinitionID(id) { ModuleId = _definition.ID?.ModuleId });
 		}
 
 		/// <summary>

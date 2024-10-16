@@ -36,7 +36,7 @@
                 throw new ArgumentNullException(nameof(definition));
             }
 
-            _instance = new DomInstance { DomDefinitionId = definition.ID };
+			_instance = new DomInstance { DomDefinitionId = definition.ID };
         }
 
 		/// <summary>
@@ -50,7 +50,7 @@
                 throw new ArgumentNullException(nameof(definitionID));
             }
 
-            _instance = new DomInstance { DomDefinitionId = definitionID };
+			_instance = new DomInstance { DomDefinitionId = definitionID };
         }
 
 		/// <summary>
@@ -90,8 +90,8 @@
 		/// <returns>The builder instance.</returns>
 		public T WithID(Guid id)
         {
-            return WithID(new DomInstanceId(id));
-        }
+			return WithID(new DomInstanceId(id) { ModuleId = _instance.ID?.ModuleId });
+		}
 
 		/// <summary>
 		/// Sets the DOM definition ID of the <see cref="DomInstance"/>.

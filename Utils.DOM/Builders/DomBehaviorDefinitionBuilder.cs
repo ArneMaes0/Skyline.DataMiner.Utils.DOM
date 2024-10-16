@@ -65,7 +65,7 @@
 		/// <returns>The builder instance.</returns>
 		public T WithID(Guid id)
         {
-            return WithID(new DomBehaviorDefinitionId(id));
+            return WithID(new DomBehaviorDefinitionId(id) { ModuleId = _definition.ID?.ModuleId });
         }
 
 		/// <summary>
