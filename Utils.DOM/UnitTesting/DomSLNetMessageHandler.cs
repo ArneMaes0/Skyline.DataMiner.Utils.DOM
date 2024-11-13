@@ -9,6 +9,7 @@
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel.CustomMessages;
 	using Skyline.DataMiner.Net.Messages;
+	using Skyline.DataMiner.Net.Messages.SLDataGateway;
 	using Skyline.DataMiner.Net.Sections;
 
 	/// <summary>
@@ -20,6 +21,8 @@
 		private readonly ConcurrentDictionary<Guid, SectionDefinition> _sectionDefinitions = new ConcurrentDictionary<Guid, SectionDefinition>();
 		private readonly ConcurrentDictionary<Guid, DomInstance> _instances = new ConcurrentDictionary<Guid, DomInstance>();
 		private readonly ConcurrentDictionary<Guid, DomBehaviorDefinition> _behaviorDefinitions = new ConcurrentDictionary<Guid, DomBehaviorDefinition>();
+
+		private readonly ConcurrentDictionary<PagingCookie, DomPagingHandler<DomInstance>> _pagingHandlers = new ConcurrentDictionary<PagingCookie, DomPagingHandler<DomInstance>>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DomSLNetMessageHandler"/> class.
@@ -201,24 +204,69 @@
 				#region Instances
 
 				case ManagerStoreReadRequest<DomInstance> request:
-					var instances = request.Query.ExecuteInMemory(_instances.Values).ToList();
-					response = new ManagerStoreCrudResponse<DomInstance>(instances);
-					return true;
+					{
+						var instances = request.Query.ExecuteInMemory(_instances.Values).ToList();
+						response = new ManagerStoreCrudResponse<DomInstance>(instances);
+						return true;
+					}
 
 				case ManagerStoreCreateRequest<DomInstance> request:
-					_instances[request.Object.ID.SafeId()] = request.Object;
-					response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
-					return true;
+					{
+						_instances[request.Object.ID.SafeId()] = request.Object;
+						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
+						return true;
+					}
 
 				case ManagerStoreUpdateRequest<DomInstance> request:
-					_instances[request.Object.ID.SafeId()] = request.Object;
-					response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
-					return true;
+					{
+						_instances[request.Object.ID.SafeId()] = request.Object;
+						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
+						return true;
+					}
 
 				case ManagerStoreDeleteRequest<DomInstance> request:
-					_instances.TryRemove(request.Object.ID.SafeId(), out _);
-					response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
-					return true;
+					{
+						_instances.TryRemove(request.Object.ID.SafeId(), out _);
+						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
+						return true;
+					}
+
+				case ManagerStoreStartPagingRequest<DomInstance> request:
+					{
+						var instances = request.Filter.ExecuteInMemory(_instances.Values).ToList();
+						var pagingHandler = new DomPagingHandler<DomInstance>(instances);
+						_pagingHandlers.TryAdd(pagingHandler.Cookie, pagingHandler);
+
+						var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
+
+						if (isLast)
+						{
+							_pagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
+							pagingHandler.Dispose();
+						}
+
+						response = new ManagerStorePagingResponse<DomInstance>(nextPage, isLast, pagingHandler.Cookie);
+						return true;
+					}
+
+				case ManagerStoreNextPagingRequest<DomInstance> request:
+					{
+						if (!_pagingHandlers.TryGetValue(request.PagingCookie, out var pagingHandler))
+						{
+							throw new InvalidOperationException($"Invalid paging cookie: {request.PagingCookie}");
+						}
+
+						var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
+
+						if (isLast)
+						{
+							_pagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
+							pagingHandler.Dispose();
+						}
+
+						response = new ManagerStorePagingResponse<DomInstance>(nextPage, isLast, pagingHandler.Cookie);
+						return true;
+					}
 
 				#endregion
 
