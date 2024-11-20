@@ -27,7 +27,7 @@
 		/// <param name="pageSize">The size of each page to retrieve.</param>
 		/// <returns>An enumerable collection of data elements.</returns>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="helper"/> or <paramref name="filter"/> is null.</exception>
-		public static IEnumerable<T> ReadPaged<T>(this ICrudHelperComponent<T> helper, FilterElement<T> filter, long pageSize = 500)
+		public static IEnumerable<IEnumerable<T>> ReadPaged<T>(this ICrudHelperComponent<T> helper, FilterElement<T> filter, long pageSize = 500)
 			where T : DataType
 		{
 			if (helper == null)
@@ -52,7 +52,7 @@
 		/// <param name="pageSize">The number of items per page.</param>
 		/// <returns>An enumerable collection of the queried data.</returns>
 		/// <exception cref="ArgumentNullException">Thrown when helper or query is null.</exception>
-		public static IEnumerable<T> ReadPaged<T>(this ICrudHelperComponent<T> helper, IQuery<T> query, long pageSize = 500)
+		public static IEnumerable<IEnumerable<T>> ReadPaged<T>(this ICrudHelperComponent<T> helper, IQuery<T> query, long pageSize = 500)
 			where T : DataType
 		{
 			if (helper == null)
@@ -76,7 +76,7 @@
 		/// <param name="pageSize">The number of items per page.</param>
 		/// <returns>An enumerable collection of all data.</returns>
 		/// <exception cref="ArgumentNullException">Thrown when helper is null.</exception>
-		public static IEnumerable<T> ReadAllPaged<T>(this ICrudHelperComponent<T> helper, long pageSize = 500)
+		public static IEnumerable<IEnumerable<T>> ReadAllPaged<T>(this ICrudHelperComponent<T> helper, long pageSize = 500)
 			where T : DataType
 		{
 			if (helper == null)
@@ -173,33 +173,23 @@
 			return new BulkDeleteResult<K>(successfulIds, unsuccessfulIds, traceDataPerItem);
 		}
 
-		private static IEnumerable<T> ReadPagedIterator<T>(ICrudHelperComponent<T> helper, FilterElement<T> filter, long pageSize) where T : DataType
+		private static IEnumerable<IEnumerable<T>> ReadPagedIterator<T>(ICrudHelperComponent<T> helper, FilterElement<T> filter, long pageSize) where T : DataType
 		{
 			var pagingHelper = helper.PreparePaging(filter, pageSize);
 
-			while (pagingHelper.HasNextPage())
+			while (pagingHelper.MoveToNextPage())
 			{
-				pagingHelper.MoveToNextPage();
-
-				foreach (var instance in pagingHelper.GetCurrentPage())
-				{
-					yield return instance;
-				}
+				yield return pagingHelper.GetCurrentPage();
 			}
 		}
 
-		private static IEnumerable<T> ReadPagedIterator<T>(ICrudHelperComponent<T> helper, IQuery<T> query, long pageSize) where T : DataType
+		private static IEnumerable<IEnumerable<T>> ReadPagedIterator<T>(ICrudHelperComponent<T> helper, IQuery<T> query, long pageSize) where T : DataType
 		{
 			var pagingHelper = helper.PreparePaging(query, pageSize);
 
-			while (pagingHelper.HasNextPage())
+			while (pagingHelper.MoveToNextPage())
 			{
-				pagingHelper.MoveToNextPage();
-
-				foreach (var instance in pagingHelper.GetCurrentPage())
-				{
-					yield return instance;
-				}
+				yield return pagingHelper.GetCurrentPage();
 			}
 		}
 	}
