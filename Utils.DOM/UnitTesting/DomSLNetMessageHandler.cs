@@ -231,6 +231,13 @@
 						return true;
 					}
 
+				case ManagerStoreCountRequest<DomInstance> request:
+					{
+						var count = request.Query.ExecuteInMemory(_instances.Values).LongCount();
+						response = new ManagerStoreCountResponse<DomInstance>(count);
+						return true;
+					}
+
 				case ManagerStoreStartPagingRequest<DomInstance> request:
 					{
 						var instances = request.Filter.ExecuteInMemory(_instances.Values).ToList();
