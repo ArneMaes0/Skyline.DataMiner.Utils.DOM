@@ -302,7 +302,11 @@
 							module.Instances[obj.ID.SafeId()] = obj;
 						}
 
-						response = new ManagerStoreCrudResponse<DomInstance>(request.Objects);
+						var traceData = request.Objects.ToDictionary(x => x.ID, x => new TraceData());
+						var unsuccessfulIds = new List<DomInstanceId>();
+						var result = new BulkCreateOrUpdateResult<DomInstance, DomInstanceId>(request.Objects, unsuccessfulIds, traceData);
+
+						response = new ManagerStoreCrudResponse<DomInstance>(result);
 						return true;
 					}
 
