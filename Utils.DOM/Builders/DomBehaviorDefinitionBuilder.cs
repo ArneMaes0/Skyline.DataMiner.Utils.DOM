@@ -1,13 +1,11 @@
 ﻿namespace Skyline.DataMiner.Utils.DOM.Builders
 {
-    using System;
+	using System;
 	using System.Collections.Generic;
 	using System.Linq;
 
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel.Status;
-	using Skyline.DataMiner.Net.Apps.Sections.SectionDefinitions;
-    using Skyline.DataMiner.Net.Sections;
 
 	/// <summary>
 	/// Represents a builder for creating instances of <see cref="DomBehaviorDefinition"/>.

@@ -62,6 +62,30 @@
 		}
 
 		/// <summary>
+		/// Creates a new instance of <see cref="DomHelperMock"/> with pre-defined instances.
+		/// </summary>
+		/// <param name="moduleId">The ID of the DOM module.</param>
+		/// <param name="instances">The pre-defined collection of DOM instances.</param>
+		/// <returns>A new instance of <see cref="DomHelperMock"/> with pre-defined instances.</returns>
+		public static DomHelperMock Create(string moduleId, IEnumerable<DomInstance> instances)
+		{
+			if (String.IsNullOrWhiteSpace(moduleId))
+			{
+				throw new ArgumentException($"'{nameof(moduleId)}' cannot be null or whitespace.", nameof(moduleId));
+			}
+
+			if (instances == null)
+			{
+				throw new ArgumentNullException(nameof(instances));
+			}
+
+			var mock = Create(moduleId);
+			mock.SetInstances(instances);
+
+			return mock;
+		}
+
+		/// <summary>
 		/// Sets the definitions in the mock.
 		/// </summary>
 		/// <param name="definitions">The collection of DOM definitions to set.</param>
@@ -72,7 +96,7 @@
 				throw new ArgumentNullException(nameof(definitions));
 			}
 
-			_messageHandler.SetDefinitions(definitions);
+			_messageHandler.SetDefinitions(ModuleId, definitions);
 		}
 
 		/// <summary>
@@ -86,7 +110,7 @@
 				throw new ArgumentNullException(nameof(sectionDefinitions));
 			}
 
-			_messageHandler.SetSectionDefinitions(sectionDefinitions);
+			_messageHandler.SetSectionDefinitions(ModuleId, sectionDefinitions);
 		}
 
 		/// <summary>
@@ -100,7 +124,7 @@
 				throw new ArgumentNullException(nameof(instances));
 			}
 
-			_messageHandler.SetInstances(instances);
+			_messageHandler.SetInstances(ModuleId, instances);
 		}
 
 		/// <summary>
@@ -114,7 +138,7 @@
 				throw new ArgumentNullException(nameof(definitions));
 			}
 
-			_messageHandler.SetBehaviorDefinitions(definitions);
+			_messageHandler.SetBehaviorDefinitions(ModuleId, definitions);
 		}
 	}
 }

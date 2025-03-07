@@ -8,7 +8,6 @@
 
 	using Skyline.DataMiner.Net.Sections;
 	using Skyline.DataMiner.Utils.DOM;
-	using Skyline.DataMiner.Utils.DOM.Builders;
 	using Skyline.DataMiner.Utils.DOM.Extensions;
 
 	[TestClass]

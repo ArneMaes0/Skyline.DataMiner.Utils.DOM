@@ -9,7 +9,6 @@
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel.CustomMessages;
 	using Skyline.DataMiner.Net.Messages;
-	using Skyline.DataMiner.Net.Messages.SLDataGateway;
 	using Skyline.DataMiner.Net.Sections;
 
 	/// <summary>
@@ -17,12 +16,7 @@
 	/// </summary>
 	public class DomSLNetMessageHandler
 	{
-		private readonly ConcurrentDictionary<Guid, DomDefinition> _definitions = new ConcurrentDictionary<Guid, DomDefinition>();
-		private readonly ConcurrentDictionary<Guid, SectionDefinition> _sectionDefinitions = new ConcurrentDictionary<Guid, SectionDefinition>();
-		private readonly ConcurrentDictionary<Guid, DomInstance> _instances = new ConcurrentDictionary<Guid, DomInstance>();
-		private readonly ConcurrentDictionary<Guid, DomBehaviorDefinition> _behaviorDefinitions = new ConcurrentDictionary<Guid, DomBehaviorDefinition>();
-
-		private readonly ConcurrentDictionary<PagingCookie, DomPagingHandler<DomInstance>> _pagingHandlers = new ConcurrentDictionary<PagingCookie, DomPagingHandler<DomInstance>>();
+		private readonly ConcurrentDictionary<string, DomModule> _domModules = new ConcurrentDictionary<string, DomModule>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DomSLNetMessageHandler"/> class.
@@ -34,80 +28,112 @@
 		/// <summary>
 		/// Sets the DomDefinitions for the handler.
 		/// </summary>
+		/// <param name="moduleId">The ID of the DOM module.</param>
 		/// <param name="definitions">The collection of DomDefinitions to set.</param>
 		/// <exception cref="ArgumentNullException">Thrown when the input collection of DomDefinitions is null.</exception>
-		public void SetDefinitions(IEnumerable<DomDefinition> definitions)
+		public void SetDefinitions(string moduleId, IEnumerable<DomDefinition> definitions)
 		{
+			if (String.IsNullOrWhiteSpace(moduleId))
+			{
+				throw new ArgumentException($"'{nameof(moduleId)}' cannot be null or whitespace.", nameof(moduleId));
+			}
+
 			if (definitions == null)
 			{
 				throw new ArgumentNullException(nameof(definitions));
 			}
 
-			_definitions.Clear();
+			var module = GetDomModule(moduleId);
+
+			module.Definitions.Clear();
 
 			foreach (var definition in definitions)
 			{
-				_definitions.TryAdd(definition.ID.SafeId(), definition);
+				module.Definitions.TryAdd(definition.ID.SafeId(), definition);
 			}
 		}
 
 		/// <summary>
 		/// Sets the SectionDefinitions for the handler.
 		/// </summary>
+		/// <param name="moduleId">The ID of the DOM module.</param>
 		/// <param name="sectionDefinitions">The collection of SectionDefinitions to set.</param>
 		/// <exception cref="ArgumentNullException">Thrown when the input collection of SectionDefinitions is null.</exception>
-		public void SetSectionDefinitions(IEnumerable<SectionDefinition> sectionDefinitions)
+		public void SetSectionDefinitions(string moduleId, IEnumerable<SectionDefinition> sectionDefinitions)
 		{
+			if (String.IsNullOrWhiteSpace(moduleId))
+			{
+				throw new ArgumentException($"'{nameof(moduleId)}' cannot be null or whitespace.", nameof(moduleId));
+			}
+
 			if (sectionDefinitions == null)
 			{
 				throw new ArgumentNullException(nameof(sectionDefinitions));
 			}
 
-			_sectionDefinitions.Clear();
+			var module = GetDomModule(moduleId);
+
+			module.SectionDefinitions.Clear();
 
 			foreach (var definition in sectionDefinitions)
 			{
-				_sectionDefinitions.TryAdd(definition.GetID().SafeId(), definition);
+				module.SectionDefinitions.TryAdd(definition.GetID().SafeId(), definition);
 			}
 		}
 
 		/// <summary>
 		/// Sets the DomInstances for the handler.
 		/// </summary>
+		/// <param name="moduleId">The ID of the DOM module.</param>
 		/// <param name="instances">The collection of DomInstances to set.</param>
 		/// <exception cref="ArgumentNullException">Thrown when the input collection of DomInstances is null.</exception>
-		public void SetInstances(IEnumerable<DomInstance> instances)
+		public void SetInstances(string moduleId, IEnumerable<DomInstance> instances)
 		{
+			if (String.IsNullOrWhiteSpace(moduleId))
+			{
+				throw new ArgumentException($"'{nameof(moduleId)}' cannot be null or whitespace.", nameof(moduleId));
+			}
+
 			if (instances == null)
 			{
 				throw new ArgumentNullException(nameof(instances));
 			}
 
-			_instances.Clear();
+			var module = GetDomModule(moduleId);
+
+			module.Instances.Clear();
 
 			foreach (var instance in instances)
 			{
-				_instances.TryAdd(instance.ID.SafeId(), instance);
+				module.Instances.TryAdd(instance.ID.SafeId(), instance);
 			}
 		}
 
 		/// <summary>
 		/// Sets the DomBehaviorDefinitions for the handler.
 		/// </summary>
+		/// <param name="moduleId">The ID of the DOM module.</param>
 		/// <param name="definitions">The collection of DomBehaviorDefinitions to set.</param>
 		/// <exception cref="ArgumentNullException">Thrown when the input collection of DomBehaviorDefinitions is null.</exception>
-		public void SetBehaviorDefinitions(IEnumerable<DomBehaviorDefinition> definitions)
+		public void SetBehaviorDefinitions(string moduleId, IEnumerable<DomBehaviorDefinition> definitions)
 		{
+			if (String.IsNullOrWhiteSpace(moduleId))
+			{
+				throw new ArgumentException($"'{nameof(moduleId)}' cannot be null or whitespace.", nameof(moduleId));
+			}
+
 			if (definitions == null)
 			{
 				throw new ArgumentNullException(nameof(definitions));
 			}
 
-			_behaviorDefinitions.Clear();
+			var module = GetDomModule(moduleId);
+
+			module.BehaviorDefinitions.Clear();
 
 			foreach (var definition in definitions)
 			{
-				_behaviorDefinitions.TryAdd(definition.ID.SafeId(), definition);
+				module.BehaviorDefinitions.TryAdd(definition.ID.SafeId(), definition);
 			}
 		}
 
@@ -156,48 +182,72 @@
 				#region Definitions
 
 				case ManagerStoreReadRequest<DomDefinition> request:
-					var definitions = request.Query.ExecuteInMemory(_definitions.Values).ToList();
-					response = new ManagerStoreCrudResponse<DomDefinition>(definitions);
-					return true;
+					{
+						var module = GetDomModule(request.ModuleId);
+						var definitions = request.Query.ExecuteInMemory(module.Definitions.Values).ToList();
+						response = new ManagerStoreCrudResponse<DomDefinition>(definitions);
+						return true;
+					}
 
 				case ManagerStoreCreateRequest<DomDefinition> request:
-					_definitions[request.Object.ID.SafeId()] = request.Object;
-					response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
-					return true;
+					{
+						var module = GetDomModule(request.ModuleId);
+						module.Definitions[request.Object.ID.SafeId()] = request.Object;
+						response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
+						return true;
+					}
 
 				case ManagerStoreUpdateRequest<DomDefinition> request:
-					_definitions[request.Object.ID.SafeId()] = request.Object;
-					response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
-					return true;
+					{
+						var module = GetDomModule(request.ModuleId);
+						module.Definitions[request.Object.ID.SafeId()] = request.Object;
+						response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
+						return true;
+					}
 
 				case ManagerStoreDeleteRequest<DomDefinition> request:
-					_definitions.TryRemove(request.Object.ID.SafeId(), out _);
-					response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
-					return true;
+					{
+						var module = GetDomModule(request.ModuleId);
+						module.Definitions.TryRemove(request.Object.ID.SafeId(), out _);
+						response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
+						return true;
+					}
 
 				#endregion
 
 				#region Section Definitions
 
 				case ManagerStoreReadRequest<SectionDefinition> request:
-					var sectionDefinitions = request.Query.ExecuteInMemory(_sectionDefinitions.Values).ToList();
-					response = new ManagerStoreCrudResponse<SectionDefinition>(sectionDefinitions);
-					return true;
+					{
+						var module = GetDomModule(request.ModuleId);
+						var sectionDefinitions = request.Query.ExecuteInMemory(module.SectionDefinitions.Values).ToList();
+						response = new ManagerStoreCrudResponse<SectionDefinition>(sectionDefinitions);
+						return true;
+					}
 
 				case ManagerStoreCreateRequest<SectionDefinition> request:
-					_sectionDefinitions[request.Object.GetID().SafeId()] = request.Object;
-					response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
-					return true;
+					{
+						var module = GetDomModule(request.ModuleId);
+						module.SectionDefinitions[request.Object.GetID().SafeId()] = request.Object;
+						response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
+						return true;
+					}
 
 				case ManagerStoreUpdateRequest<SectionDefinition> request:
-					_sectionDefinitions[request.Object.GetID().SafeId()] = request.Object;
-					response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
-					return true;
+					{
+						var module = GetDomModule(request.ModuleId);
+						module.SectionDefinitions[request.Object.GetID().SafeId()] = request.Object;
+						response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
+						return true;
+					}
 
 				case ManagerStoreDeleteRequest<SectionDefinition> request:
-					_sectionDefinitions.TryRemove(request.Object.GetID().SafeId(), out _);
-					response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
-					return true;
+					{
+						var module = GetDomModule(request.ModuleId);
+						module.SectionDefinitions.TryRemove(request.Object.GetID().SafeId(), out _);
+						response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
+						return true;
+					}
 
 				#endregion
 
@@ -205,50 +255,69 @@
 
 				case ManagerStoreReadRequest<DomInstance> request:
 					{
-						var instances = request.Query.ExecuteInMemory(_instances.Values).ToList();
+						var module = GetDomModule(request.ModuleId);
+						var instances = request.Query.ExecuteInMemory(module.Instances.Values).ToList();
 						response = new ManagerStoreCrudResponse<DomInstance>(instances);
 						return true;
 					}
 
 				case ManagerStoreCreateRequest<DomInstance> request:
 					{
-						_instances[request.Object.ID.SafeId()] = request.Object;
+						var module = GetDomModule(request.ModuleId);
+						module.Instances[request.Object.ID.SafeId()] = request.Object;
 						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
 						return true;
 					}
 
 				case ManagerStoreUpdateRequest<DomInstance> request:
 					{
-						_instances[request.Object.ID.SafeId()] = request.Object;
+						var module = GetDomModule(request.ModuleId);
+						module.Instances[request.Object.ID.SafeId()] = request.Object;
 						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
 						return true;
 					}
 
 				case ManagerStoreDeleteRequest<DomInstance> request:
 					{
-						_instances.TryRemove(request.Object.ID.SafeId(), out _);
+						var module = GetDomModule(request.ModuleId);
+						module.Instances.TryRemove(request.Object.ID.SafeId(), out _);
 						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
 						return true;
 					}
 
 				case ManagerStoreCountRequest<DomInstance> request:
 					{
-						var count = request.Query.ExecuteInMemory(_instances.Values).LongCount();
+						var module = GetDomModule(request.ModuleId);
+						var count = request.Query.ExecuteInMemory(module.Instances.Values).LongCount();
 						response = new ManagerStoreCountResponse<DomInstance>(count);
+						return true;
+					}
+
+				case ManagerStoreBulkCreateOrUpdateRequest<DomInstance> request:
+					{
+						var module = GetDomModule(request.ModuleId);
+
+						foreach (var obj in request.Objects)
+						{
+							module.Instances[obj.ID.SafeId()] = obj;
+						}
+
+						response = new ManagerStoreCrudResponse<DomInstance>(request.Objects);
 						return true;
 					}
 
 				case ManagerStoreStartPagingRequest<DomInstance> request:
 					{
-						var instances = request.Filter.ExecuteInMemory(_instances.Values).ToList();
+						var module = GetDomModule(request.ModuleId);
+						var instances = request.Filter.ExecuteInMemory(module.Instances.Values).ToList();
 						var pagingHandler = new DomPagingHandler<DomInstance>(instances);
-						_pagingHandlers.TryAdd(pagingHandler.Cookie, pagingHandler);
+						module.PagingHandlers.TryAdd(pagingHandler.Cookie, pagingHandler);
 
 						var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
 
 						if (isLast)
 						{
-							_pagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
+							module.PagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
 							pagingHandler.Dispose();
 						}
 
@@ -258,7 +327,8 @@
 
 				case ManagerStoreNextPagingRequest<DomInstance> request:
 					{
-						if (!_pagingHandlers.TryGetValue(request.PagingCookie, out var pagingHandler))
+						var module = GetDomModule(request.ModuleId);
+						if (!module.PagingHandlers.TryGetValue(request.PagingCookie, out var pagingHandler))
 						{
 							throw new InvalidOperationException($"Invalid paging cookie: {request.PagingCookie}");
 						}
@@ -267,7 +337,7 @@
 
 						if (isLast)
 						{
-							_pagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
+							module.PagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
 							pagingHandler.Dispose();
 						}
 
@@ -280,24 +350,36 @@
 				#region BehaviorDefinitions
 
 				case ManagerStoreReadRequest<DomBehaviorDefinition> request:
-					var behaviorDefinitions = request.Query.ExecuteInMemory(_behaviorDefinitions.Values).ToList();
-					response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(behaviorDefinitions);
-					return true;
+					{
+						var module = GetDomModule(request.ModuleId);
+						var behaviorDefinitions = request.Query.ExecuteInMemory(module.BehaviorDefinitions.Values).ToList();
+						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(behaviorDefinitions);
+						return true;
+					}
 
 				case ManagerStoreCreateRequest<DomBehaviorDefinition> request:
-					_behaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
-					response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
-					return true;
+					{
+						var module = GetDomModule(request.ModuleId);
+						module.BehaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
+						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
+						return true;
+					}
 
 				case ManagerStoreUpdateRequest<DomBehaviorDefinition> request:
-					_behaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
-					response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
-					return true;
+					{
+						var module = GetDomModule(request.ModuleId);
+						module.BehaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
+						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
+						return true;
+					}
 
 				case ManagerStoreDeleteRequest<DomBehaviorDefinition> request:
-					_behaviorDefinitions.TryRemove(request.Object.ID.SafeId(), out _);
-					response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
-					return true;
+					{
+						var module = GetDomModule(request.ModuleId);
+						module.BehaviorDefinitions.TryRemove(request.Object.ID.SafeId(), out _);
+						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
+						return true;
+					}
 
 				#endregion
 
@@ -317,17 +399,19 @@
 
 		private DMSMessage HandleDomInstanceStatusTransitionRequestMessage(DomInstanceStatusTransitionRequestMessage request)
 		{
-			if (!_instances.TryGetValue(request.DomInstanceId.Id, out var instance))
+			var module = GetDomModule(request.ModuleId);
+
+			if (!module.Instances.TryGetValue(request.DomInstanceId.Id, out var instance))
 			{
 				throw new InvalidOperationException($"Couldn't find instance with ID '{request.DomInstanceId.Id}'");
 			}
 
-			if (!_definitions.TryGetValue(instance.DomDefinitionId.Id, out var definition))
+			if (!module.Definitions.TryGetValue(instance.DomDefinitionId.Id, out var definition))
 			{
 				throw new InvalidOperationException($"Couldn't find definition with ID '{instance.DomDefinitionId.Id}'");
 			}
 
-			if (!_behaviorDefinitions.TryGetValue(definition.DomBehaviorDefinitionId.Id, out var behavior))
+			if (!module.BehaviorDefinitions.TryGetValue(definition.DomBehaviorDefinitionId.Id, out var behavior))
 			{
 				throw new InvalidOperationException($"Couldn't find behavior with ID '{definition.DomBehaviorDefinitionId.Id}'");
 			}
@@ -346,6 +430,16 @@
 			instance.StatusId = transition.ToStatusId;
 
 			return new DomInstanceStatusTransitionResponseMessage { DomInstance = instance };
+		}
+
+		private DomModule GetDomModule(string moduleId)
+		{
+			if (String.IsNullOrWhiteSpace(moduleId))
+			{
+				throw new ArgumentException($"'{nameof(moduleId)}' cannot be null or whitespace.", nameof(moduleId));
+			}
+
+			return _domModules.GetOrAdd(moduleId, x => new DomModule(x));
 		}
 	}
 }

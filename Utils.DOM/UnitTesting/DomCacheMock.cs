@@ -49,6 +49,28 @@ namespace Skyline.DataMiner.Utils.DOM.UnitTesting
 		}
 
 		/// <summary>
+		/// Creates a new instance of <see cref="DomCacheMock"/> with pre-defined instances.
+		/// </summary>
+		/// <param name="moduleId">The ID of the DOM module.</param>
+		/// <param name="instances">The pre-defined collection of DOM instances.</param>
+		/// <returns>A new instance of <see cref="DomCacheMock"/> with pre-defined instances.</returns>
+		public static DomCacheMock Create(string moduleId, IEnumerable<DomInstance> instances)
+		{
+			if (String.IsNullOrWhiteSpace(moduleId))
+			{
+				throw new ArgumentException($"'{nameof(moduleId)}' cannot be null or whitespace.", nameof(moduleId));
+			}
+
+			if (instances == null)
+			{
+				throw new ArgumentNullException(nameof(instances));
+			}
+
+			var helper = DomHelperMock.Create(moduleId, instances);
+			return new DomCacheMock(helper);
+		}
+
+		/// <summary>
 		/// Sets the definitions in the mock.
 		/// </summary>
 		/// <param name="definitions">The collection of DOM definitions to set.</param>
