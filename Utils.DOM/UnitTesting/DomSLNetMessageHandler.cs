@@ -408,7 +408,7 @@
 
 				case ManagerStoreCreateRequest<ModuleSettings> request:
 					{
-						var module = GetDomModule(request.ModuleId);
+						var module = GetDomModule(request.Object.ModuleId);
 						module.Settings = request.Object;
 						response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
 						return true;
@@ -416,7 +416,7 @@
 
 				case ManagerStoreUpdateRequest<ModuleSettings> request:
 					{
-						var module = GetDomModule(request.ModuleId);
+						var module = GetDomModule(request.Object.ModuleId);
 						module.Settings = request.Object;
 						response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
 						return true;
@@ -424,7 +424,7 @@
 
 				case ManagerStoreDeleteRequest<ModuleSettings> request:
 					{
-						var module = GetDomModule(request.ModuleId);
+						var module = GetDomModule(request.Object.ModuleId);
 						module.Settings = null;
 						response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
 						return true;
