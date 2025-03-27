@@ -8,8 +8,10 @@
 	using Skyline.DataMiner.Net;
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel.CustomMessages;
+	using Skyline.DataMiner.Net.Apps.Modules;
 	using Skyline.DataMiner.Net.Messages;
 	using Skyline.DataMiner.Net.Sections;
+	using Skyline.DataMiner.Utils.DOM.Extensions;
 
 	/// <summary>
 	/// Represents a handler for handling DMS messages related to DOM (Data Object Model) entities.
@@ -392,6 +394,48 @@
 				case DomInstanceStatusTransitionRequestMessage request:
 					response = HandleDomInstanceStatusTransitionRequestMessage(request);
 					return true;
+
+				#endregion
+
+				#region Module Settings
+
+				case ManagerStoreReadRequest<ModuleSettings> request:
+					{
+						var instances = request.Query.ExecuteInMemory(_domModules.Values.SelectNonNull(x => x.Settings)).ToList();
+						response = new ManagerStoreCrudResponse<ModuleSettings>(instances);
+						return true;
+					}
+
+				case ManagerStoreCreateRequest<ModuleSettings> request:
+					{
+						var module = GetDomModule(request.ModuleId);
+						module.Settings = request.Object;
+						response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
+						return true;
+					}
+
+				case ManagerStoreUpdateRequest<ModuleSettings> request:
+					{
+						var module = GetDomModule(request.ModuleId);
+						module.Settings = request.Object;
+						response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
+						return true;
+					}
+
+				case ManagerStoreDeleteRequest<ModuleSettings> request:
+					{
+						var module = GetDomModule(request.ModuleId);
+						module.Settings = null;
+						response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
+						return true;
+					}
+
+				case ManagerStoreCountRequest<ModuleSettings> request:
+					{
+						var count = request.Query.ExecuteInMemory(_domModules.Values.SelectNonNull(x => x.Settings)).LongCount();
+						response = new ManagerStoreCountResponse<ModuleSettings>(count);
+						return true;
+					}
 
 				#endregion
 

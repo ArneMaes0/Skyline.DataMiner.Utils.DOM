@@ -4,6 +4,7 @@
 	using System.Collections.Concurrent;
 
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
+	using Skyline.DataMiner.Net.Apps.Modules;
 	using Skyline.DataMiner.Net.Messages.SLDataGateway;
 	using Skyline.DataMiner.Net.Sections;
 
@@ -20,6 +21,8 @@
 		}
 
 		public string ModuleId { get; }
+
+		public ModuleSettings Settings { get; set; }
 
 		public ConcurrentDictionary<Guid, DomDefinition> Definitions { get; } = new ConcurrentDictionary<Guid, DomDefinition>();
 		public ConcurrentDictionary<Guid, SectionDefinition> SectionDefinitions { get; } = new ConcurrentDictionary<Guid, SectionDefinition>();
