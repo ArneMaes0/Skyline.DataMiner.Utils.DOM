@@ -9,6 +9,7 @@
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel.CustomMessages;
 	using Skyline.DataMiner.Net.Apps.Modules;
+	using Skyline.DataMiner.Net.ManagerStore;
 	using Skyline.DataMiner.Net.Messages;
 	using Skyline.DataMiner.Net.Sections;
 	using Skyline.DataMiner.Utils.DOM.Extensions;
@@ -184,208 +185,250 @@
 				#region Definitions
 
 				case ManagerStoreReadRequest<DomDefinition> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						var definitions = request.Query.ExecuteInMemory(module.Definitions.Values).ToList();
-						response = new ManagerStoreCrudResponse<DomDefinition>(definitions);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					var definitions = request.Query.ExecuteInMemory(module.Definitions.Values).ToList();
+					response = new ManagerStoreCrudResponse<DomDefinition>(definitions);
+					return true;
+				}
 
 				case ManagerStoreCreateRequest<DomDefinition> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						module.Definitions[request.Object.ID.SafeId()] = request.Object;
-						response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					var utcNow = DateTime.UtcNow;
+					((ITrackCreatedAt)request.Object).CreatedAt = utcNow;
+					((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
+					((ITrackLastModified)request.Object).LastModified = utcNow;
+					((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+					module.Definitions[request.Object.ID.SafeId()] = request.Object;
+					response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
+					return true;
+				}
 
 				case ManagerStoreUpdateRequest<DomDefinition> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						module.Definitions[request.Object.ID.SafeId()] = request.Object;
-						response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					var utcNow = DateTime.UtcNow;
+					((ITrackLastModified)request.Object).LastModified = utcNow;
+					((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+					module.Definitions[request.Object.ID.SafeId()] = request.Object;
+					response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
+					return true;
+				}
 
 				case ManagerStoreDeleteRequest<DomDefinition> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						module.Definitions.TryRemove(request.Object.ID.SafeId(), out _);
-						response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					module.Definitions.TryRemove(request.Object.ID.SafeId(), out _);
+					response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
+					return true;
+				}
 
 				#endregion
 
 				#region Section Definitions
 
 				case ManagerStoreReadRequest<SectionDefinition> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						var sectionDefinitions = request.Query.ExecuteInMemory(module.SectionDefinitions.Values).ToList();
-						response = new ManagerStoreCrudResponse<SectionDefinition>(sectionDefinitions);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					var sectionDefinitions = request.Query.ExecuteInMemory(module.SectionDefinitions.Values).ToList();
+					response = new ManagerStoreCrudResponse<SectionDefinition>(sectionDefinitions);
+					return true;
+				}
 
 				case ManagerStoreCreateRequest<SectionDefinition> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						module.SectionDefinitions[request.Object.GetID().SafeId()] = request.Object;
-						response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					var utcNow = DateTime.UtcNow;
+					((ITrackCreatedAt)request.Object).CreatedAt = utcNow;
+					((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
+					((ITrackLastModified)request.Object).LastModified = utcNow;
+					((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+					module.SectionDefinitions[request.Object.GetID().SafeId()] = request.Object;
+					response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
+					return true;
+				}
 
 				case ManagerStoreUpdateRequest<SectionDefinition> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						module.SectionDefinitions[request.Object.GetID().SafeId()] = request.Object;
-						response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					var utcNow = DateTime.UtcNow;
+					((ITrackLastModified)request.Object).LastModified = utcNow;
+					((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+					module.SectionDefinitions[request.Object.GetID().SafeId()] = request.Object;
+					response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
+					return true;
+				}
 
 				case ManagerStoreDeleteRequest<SectionDefinition> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						module.SectionDefinitions.TryRemove(request.Object.GetID().SafeId(), out _);
-						response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					module.SectionDefinitions.TryRemove(request.Object.GetID().SafeId(), out _);
+					response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
+					return true;
+				}
 
 				#endregion
 
 				#region Instances
 
 				case ManagerStoreReadRequest<DomInstance> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						var instances = request.Query.ExecuteInMemory(module.Instances.Values).ToList();
-						response = new ManagerStoreCrudResponse<DomInstance>(instances);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					var instances = request.Query.ExecuteInMemory(module.Instances.Values).ToList();
+					response = new ManagerStoreCrudResponse<DomInstance>(instances);
+					return true;
+				}
 
 				case ManagerStoreCreateRequest<DomInstance> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						module.Instances[request.Object.ID.SafeId()] = request.Object;
-						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					var utcNow = DateTime.UtcNow;
+					((ITrackCreatedAt)request.Object).CreatedAt = utcNow;
+					((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
+					((ITrackLastModified)request.Object).LastModified = utcNow;
+					((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+					module.Instances[request.Object.ID.SafeId()] = request.Object;
+					response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
+					return true;
+				}
 
 				case ManagerStoreUpdateRequest<DomInstance> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						module.Instances[request.Object.ID.SafeId()] = request.Object;
-						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					module.Instances[request.Object.ID.SafeId()] = request.Object;
+					var utcNow = DateTime.UtcNow;
+					((ITrackLastModified)request.Object).LastModified = utcNow;
+					((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+					response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
+					return true;
+				}
 
 				case ManagerStoreDeleteRequest<DomInstance> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						module.Instances.TryRemove(request.Object.ID.SafeId(), out _);
-						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					module.Instances.TryRemove(request.Object.ID.SafeId(), out _);
+					response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
+					return true;
+				}
 
 				case ManagerStoreCountRequest<DomInstance> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						var count = request.Query.ExecuteInMemory(module.Instances.Values).LongCount();
-						response = new ManagerStoreCountResponse<DomInstance>(count);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					var count = request.Query.ExecuteInMemory(module.Instances.Values).LongCount();
+					response = new ManagerStoreCountResponse<DomInstance>(count);
+					return true;
+				}
 
 				case ManagerStoreBulkCreateOrUpdateRequest<DomInstance> request:
-					{
-						var module = GetDomModule(request.ModuleId);
+				{
+					var module = GetDomModule(request.ModuleId);
+					var utcNow = DateTime.UtcNow;
 
-						foreach (var obj in request.Objects)
+					foreach (var obj in request.Objects)
+					{
+						if (!module.Instances.ContainsKey(obj.ID.SafeId()))
 						{
-							module.Instances[obj.ID.SafeId()] = obj;
+							((ITrackCreatedAt)obj).CreatedAt = utcNow;
+							((ITrackCreatedBy)obj).CreatedBy = "DomSLNetMessageHandler";
 						}
 
-						var traceData = request.Objects.ToDictionary(x => x.ID, x => new TraceData());
-						var unsuccessfulIds = new List<DomInstanceId>();
-						var result = new BulkCreateOrUpdateResult<DomInstance, DomInstanceId>(request.Objects, unsuccessfulIds, traceData);
 
-						response = new ManagerStoreCrudResponse<DomInstance>(result);
-						return true;
+						((ITrackLastModified)obj).LastModified = utcNow;
+						((ITrackLastModifiedBy)obj).LastModifiedBy = "DomSLNetMessageHandler";
+						module.Instances[obj.ID.SafeId()] = obj;
 					}
+
+					var traceData = request.Objects.ToDictionary(x => x.ID, x => new TraceData());
+					var unsuccessfulIds = new List<DomInstanceId>();
+					var result = new BulkCreateOrUpdateResult<DomInstance, DomInstanceId>(request.Objects, unsuccessfulIds, traceData);
+
+					response = new ManagerStoreCrudResponse<DomInstance>(result);
+					return true;
+				}
 
 				case ManagerStoreStartPagingRequest<DomInstance> request:
+				{
+					var module = GetDomModule(request.ModuleId);
+					var instances = request.Filter.ExecuteInMemory(module.Instances.Values).ToList();
+					var pagingHandler = new DomPagingHandler<DomInstance>(instances);
+					module.PagingHandlers.TryAdd(pagingHandler.Cookie, pagingHandler);
+
+					var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
+
+					if (isLast)
 					{
-						var module = GetDomModule(request.ModuleId);
-						var instances = request.Filter.ExecuteInMemory(module.Instances.Values).ToList();
-						var pagingHandler = new DomPagingHandler<DomInstance>(instances);
-						module.PagingHandlers.TryAdd(pagingHandler.Cookie, pagingHandler);
-
-						var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
-
-						if (isLast)
-						{
-							module.PagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
-							pagingHandler.Dispose();
-						}
-
-						response = new ManagerStorePagingResponse<DomInstance>(nextPage, isLast, pagingHandler.Cookie);
-						return true;
+						module.PagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
+						pagingHandler.Dispose();
 					}
+
+					response = new ManagerStorePagingResponse<DomInstance>(nextPage, isLast, pagingHandler.Cookie);
+					return true;
+				}
 
 				case ManagerStoreNextPagingRequest<DomInstance> request:
+				{
+					var module = GetDomModule(request.ModuleId);
+					if (!module.PagingHandlers.TryGetValue(request.PagingCookie, out var pagingHandler))
 					{
-						var module = GetDomModule(request.ModuleId);
-						if (!module.PagingHandlers.TryGetValue(request.PagingCookie, out var pagingHandler))
-						{
-							throw new InvalidOperationException($"Invalid paging cookie: {request.PagingCookie}");
-						}
-
-						var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
-
-						if (isLast)
-						{
-							module.PagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
-							pagingHandler.Dispose();
-						}
-
-						response = new ManagerStorePagingResponse<DomInstance>(nextPage, isLast, pagingHandler.Cookie);
-						return true;
+						throw new InvalidOperationException($"Invalid paging cookie: {request.PagingCookie}");
 					}
+
+					var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
+
+					if (isLast)
+					{
+						module.PagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
+						pagingHandler.Dispose();
+					}
+
+					response = new ManagerStorePagingResponse<DomInstance>(nextPage, isLast, pagingHandler.Cookie);
+					return true;
+				}
 
 				#endregion
 
 				#region BehaviorDefinitions
 
 				case ManagerStoreReadRequest<DomBehaviorDefinition> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						var behaviorDefinitions = request.Query.ExecuteInMemory(module.BehaviorDefinitions.Values).ToList();
-						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(behaviorDefinitions);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					var behaviorDefinitions = request.Query.ExecuteInMemory(module.BehaviorDefinitions.Values).ToList();
+					response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(behaviorDefinitions);
+					return true;
+				}
 
 				case ManagerStoreCreateRequest<DomBehaviorDefinition> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						module.BehaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
-						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					var utcNow = DateTime.UtcNow;
+					((ITrackCreatedAt)request.Object).CreatedAt = utcNow;
+					((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
+					((ITrackLastModified)request.Object).LastModified = utcNow;
+					((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+					module.BehaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
+					response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
+					return true;
+				}
 
 				case ManagerStoreUpdateRequest<DomBehaviorDefinition> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						module.BehaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
-						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					var utcNow = DateTime.UtcNow;
+					((ITrackLastModified)request.Object).LastModified = utcNow;
+					((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+					module.BehaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
+					response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
+					return true;
+				}
 
 				case ManagerStoreDeleteRequest<DomBehaviorDefinition> request:
-					{
-						var module = GetDomModule(request.ModuleId);
-						module.BehaviorDefinitions.TryRemove(request.Object.ID.SafeId(), out _);
-						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.ModuleId);
+					module.BehaviorDefinitions.TryRemove(request.Object.ID.SafeId(), out _);
+					response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
+					return true;
+				}
 
 				#endregion
 
@@ -400,42 +443,50 @@
 				#region Module Settings
 
 				case ManagerStoreReadRequest<ModuleSettings> request:
-					{
-						var instances = request.Query.ExecuteInMemory(_domModules.Values.SelectNonNull(x => x.Settings)).ToList();
-						response = new ManagerStoreCrudResponse<ModuleSettings>(instances);
-						return true;
-					}
+				{
+					var instances = request.Query.ExecuteInMemory(_domModules.Values.SelectNonNull(x => x.Settings)).ToList();
+					response = new ManagerStoreCrudResponse<ModuleSettings>(instances);
+					return true;
+				}
 
 				case ManagerStoreCreateRequest<ModuleSettings> request:
-					{
-						var module = GetDomModule(request.Object.ModuleId);
-						module.Settings = request.Object;
-						response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.Object.ModuleId);
+					var utcNow = DateTime.UtcNow;
+					((ITrackCreatedAt)request.Object).CreatedAt = utcNow;
+					((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
+					((ITrackLastModified)request.Object).LastModified = utcNow;
+					((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+					module.Settings = request.Object;
+					response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
+					return true;
+				}
 
 				case ManagerStoreUpdateRequest<ModuleSettings> request:
-					{
-						var module = GetDomModule(request.Object.ModuleId);
-						module.Settings = request.Object;
-						response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.Object.ModuleId);
+					var utcNow = DateTime.UtcNow;
+					((ITrackLastModified)request.Object).LastModified = utcNow;
+					((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+					module.Settings = request.Object;
+					response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
+					return true;
+				}
 
 				case ManagerStoreDeleteRequest<ModuleSettings> request:
-					{
-						var module = GetDomModule(request.Object.ModuleId);
-						module.Settings = null;
-						response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
-						return true;
-					}
+				{
+					var module = GetDomModule(request.Object.ModuleId);
+					module.Settings = null;
+					response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
+					return true;
+				}
 
 				case ManagerStoreCountRequest<ModuleSettings> request:
-					{
-						var count = request.Query.ExecuteInMemory(_domModules.Values.SelectNonNull(x => x.Settings)).LongCount();
-						response = new ManagerStoreCountResponse<ModuleSettings>(count);
-						return true;
-					}
+				{
+					var count = request.Query.ExecuteInMemory(_domModules.Values.SelectNonNull(x => x.Settings)).LongCount();
+					response = new ManagerStoreCountResponse<ModuleSettings>(count);
+					return true;
+				}
 
 				#endregion
 
@@ -475,6 +526,9 @@
 				throw new InvalidOperationException($"Instance doesn't have status '{transition.FromStatusId}', but '{instance.StatusId}'");
 			}
 
+			var utcNow = DateTime.UtcNow;
+			((ITrackLastModified)instance).LastModified = utcNow;
+			((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 			instance.StatusId = transition.ToStatusId;
 
 			return new DomInstanceStatusTransitionResponseMessage { DomInstance = instance };
