@@ -9,6 +9,7 @@
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel.CustomMessages;
 	using Skyline.DataMiner.Net.Apps.Modules;
+	using Skyline.DataMiner.Net.ManagerStore;
 	using Skyline.DataMiner.Net.Messages;
 	using Skyline.DataMiner.Net.Sections;
 	using Skyline.DataMiner.Utils.DOM.Extensions;
@@ -195,6 +196,11 @@
 				case ManagerStoreCreateRequest<DomDefinition> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+						var utcNow = DateTime.UtcNow;
+						((ITrackCreatedAt)request.Object).CreatedAt = utcNow;
+						((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
+						((ITrackLastModified)request.Object).LastModified = utcNow;
+						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
 						module.Definitions[request.Object.ID.SafeId()] = request.Object;
 						response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
 						return true;
@@ -203,6 +209,9 @@
 				case ManagerStoreUpdateRequest<DomDefinition> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+						var utcNow = DateTime.UtcNow;
+						((ITrackLastModified)request.Object).LastModified = utcNow;
+						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
 						module.Definitions[request.Object.ID.SafeId()] = request.Object;
 						response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
 						return true;
@@ -231,6 +240,11 @@
 				case ManagerStoreCreateRequest<SectionDefinition> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+						var utcNow = DateTime.UtcNow;
+						((ITrackCreatedAt)request.Object).CreatedAt = utcNow;
+						((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
+						((ITrackLastModified)request.Object).LastModified = utcNow;
+						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
 						module.SectionDefinitions[request.Object.GetID().SafeId()] = request.Object;
 						response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
 						return true;
@@ -239,6 +253,9 @@
 				case ManagerStoreUpdateRequest<SectionDefinition> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+						var utcNow = DateTime.UtcNow;
+						((ITrackLastModified)request.Object).LastModified = utcNow;
+						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
 						module.SectionDefinitions[request.Object.GetID().SafeId()] = request.Object;
 						response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
 						return true;
@@ -268,6 +285,12 @@
 					{
 						var module = GetDomModule(request.ModuleId);
 
+						var utcNow = DateTime.UtcNow;
+						((ITrackCreatedAt)request.Object).CreatedAt = utcNow;
+						((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
+						((ITrackLastModified)request.Object).LastModified = utcNow;
+						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+
 						module.TrySetNameOnDomInstance(request.Object);
 						module.Instances[request.Object.ID.SafeId()] = request.Object;
 
@@ -278,6 +301,10 @@
 				case ManagerStoreUpdateRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+
+						var utcNow = DateTime.UtcNow;
+						((ITrackLastModified)request.Object).LastModified = utcNow;
+						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
 
 						module.TrySetNameOnDomInstance(request.Object);
 						module.Instances[request.Object.ID.SafeId()] = request.Object;
@@ -305,9 +332,19 @@
 				case ManagerStoreBulkCreateOrUpdateRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+						var utcNow = DateTime.UtcNow;
 
 						foreach (var obj in request.Objects)
 						{
+							if (!module.Instances.ContainsKey(obj.ID.SafeId()))
+							{
+								((ITrackCreatedAt)obj).CreatedAt = utcNow;
+								((ITrackCreatedBy)obj).CreatedBy = "DomSLNetMessageHandler";
+							}
+
+							((ITrackLastModified)obj).LastModified = utcNow;
+							((ITrackLastModifiedBy)obj).LastModifiedBy = "DomSLNetMessageHandler";
+
 							module.TrySetNameOnDomInstance(obj);
 							module.Instances[obj.ID.SafeId()] = obj;
 						}
@@ -374,6 +411,11 @@
 				case ManagerStoreCreateRequest<DomBehaviorDefinition> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+						var utcNow = DateTime.UtcNow;
+						((ITrackCreatedAt)request.Object).CreatedAt = utcNow;
+						((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
+						((ITrackLastModified)request.Object).LastModified = utcNow;
+						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
 						module.BehaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
 						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
 						return true;
@@ -382,6 +424,9 @@
 				case ManagerStoreUpdateRequest<DomBehaviorDefinition> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+						var utcNow = DateTime.UtcNow;
+						((ITrackLastModified)request.Object).LastModified = utcNow;
+						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
 						module.BehaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
 						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
 						return true;
@@ -417,6 +462,11 @@
 				case ManagerStoreCreateRequest<ModuleSettings> request:
 					{
 						var module = GetDomModule(request.Object.ModuleId);
+						var utcNow = DateTime.UtcNow;
+						((ITrackCreatedAt)request.Object).CreatedAt = utcNow;
+						((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
+						((ITrackLastModified)request.Object).LastModified = utcNow;
+						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
 						module.Settings = request.Object;
 						response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
 						return true;
@@ -425,6 +475,9 @@
 				case ManagerStoreUpdateRequest<ModuleSettings> request:
 					{
 						var module = GetDomModule(request.Object.ModuleId);
+						var utcNow = DateTime.UtcNow;
+						((ITrackLastModified)request.Object).LastModified = utcNow;
+						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
 						module.Settings = request.Object;
 						response = new ManagerStoreCrudResponse<ModuleSettings>(request.Object);
 						return true;
@@ -483,6 +536,9 @@
 				throw new InvalidOperationException($"Instance doesn't have status '{transition.FromStatusId}', but '{instance.StatusId}'");
 			}
 
+			var utcNow = DateTime.UtcNow;
+			((ITrackLastModified)instance).LastModified = utcNow;
+			((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 			instance.StatusId = transition.ToStatusId;
 
 			return new DomInstanceStatusTransitionResponseMessage { DomInstance = instance };
