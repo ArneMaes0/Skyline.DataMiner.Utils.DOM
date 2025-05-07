@@ -107,6 +107,7 @@
 
 			foreach (var instance in instances)
 			{
+				module.TrySetNameOnDomInstance(instance);
 				module.Instances.TryAdd(instance.ID.SafeId(), instance);
 			}
 		}
@@ -266,7 +267,10 @@
 				case ManagerStoreCreateRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+
+						module.TrySetNameOnDomInstance(request.Object);
 						module.Instances[request.Object.ID.SafeId()] = request.Object;
+
 						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
 						return true;
 					}
@@ -274,7 +278,10 @@
 				case ManagerStoreUpdateRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+
+						module.TrySetNameOnDomInstance(request.Object);
 						module.Instances[request.Object.ID.SafeId()] = request.Object;
+
 						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
 						return true;
 					}
@@ -301,6 +308,7 @@
 
 						foreach (var obj in request.Objects)
 						{
+							module.TrySetNameOnDomInstance(obj);
 							module.Instances[obj.ID.SafeId()] = obj;
 						}
 

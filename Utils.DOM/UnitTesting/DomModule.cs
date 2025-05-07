@@ -29,5 +29,20 @@
 		public ConcurrentDictionary<Guid, DomInstance> Instances { get; } = new ConcurrentDictionary<Guid, DomInstance>();
 		public ConcurrentDictionary<Guid, DomBehaviorDefinition> BehaviorDefinitions { get; } = new ConcurrentDictionary<Guid, DomBehaviorDefinition>();
 		public ConcurrentDictionary<PagingCookie, DomPagingHandler<DomInstance>> PagingHandlers { get; } = new ConcurrentDictionary<PagingCookie, DomPagingHandler<DomInstance>>();
+
+		public void TrySetNameOnDomInstance(DomInstance instance)
+		{
+			if (instance == null)
+			{
+				return;
+			}
+
+			var nameDefinition = Settings?.DomManagerSettings?.DomInstanceNameDefinition;
+
+			if (nameDefinition != null)
+			{
+				nameDefinition.SetNameOnDomInstance(instance);
+			}
+		}
 	}
 }
