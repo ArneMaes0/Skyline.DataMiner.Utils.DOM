@@ -39,10 +39,13 @@
 
 			var nameDefinition = Settings?.DomManagerSettings?.DomInstanceNameDefinition;
 
-			if (nameDefinition != null)
+			if (Definitions.TryGetValue(instance.DomDefinitionId.Id, out var definition) &&
+				definition.ModuleSettingsOverrides?.NameDefinition != null)
 			{
-				nameDefinition.SetNameOnDomInstance(instance);
+				nameDefinition = definition.ModuleSettingsOverrides.NameDefinition;
 			}
+
+			nameDefinition?.SetNameOnDomInstance(instance);
 		}
 	}
 }
