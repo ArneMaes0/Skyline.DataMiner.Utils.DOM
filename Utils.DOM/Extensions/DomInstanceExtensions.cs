@@ -27,8 +27,12 @@
 				throw new ArgumentNullException(nameof(helper));
 			}
 
-			var filter = DomInstanceExposers.Id.Equal(id);
+			if (id == null)
+			{
+				return null;
+			}
 
+			var filter = DomInstanceExposers.Id.Equal(id);
 			return helper.Read(filter).SingleOrDefault();
 		}
 

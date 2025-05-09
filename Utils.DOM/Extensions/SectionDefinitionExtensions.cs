@@ -26,6 +26,11 @@
 				throw new ArgumentNullException(nameof(helper));
 			}
 
+			if (id == null)
+			{
+				return null;
+			}
+
 			var filter = SectionDefinitionExposers.ID.Equal(id);
 
 			return helper.Read(filter).SingleOrDefault();

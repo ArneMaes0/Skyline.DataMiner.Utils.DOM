@@ -26,6 +26,11 @@
 				throw new ArgumentNullException(nameof(helper));
 			}
 
+			if (id == null)
+			{
+				return null;
+			}
+
 			var filter = DomDefinitionExposers.Id.Equal(id);
 
 			return helper.Read(filter).SingleOrDefault();
