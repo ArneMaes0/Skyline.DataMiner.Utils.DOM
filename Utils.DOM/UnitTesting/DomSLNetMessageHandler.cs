@@ -357,6 +357,32 @@
 						return true;
 					}
 
+				case ManagerStoreBulkDeleteRequest<DomInstance> request:
+					{
+						var module = GetDomModule(request.ModuleId);
+
+						var successfulIds = new List<DomInstance>();
+						var unsuccessfulIds = new List<DomInstance>();
+
+						foreach (var obj in request.Objects)
+						{
+							if (module.Instances.TryRemove(obj.ID.SafeId(), out _))
+							{
+								successfulIds.Add(obj);
+							}
+							else
+							{
+								unsuccessfulIds.Add(obj);
+							}
+						}
+
+						var traceData = request.Objects.ToDictionary(x => x, x => new TraceData());
+						var result = new BulkDeleteResult<DomInstance>(successfulIds, unsuccessfulIds, traceData);
+
+						response = new ManagerStoreCrudResponse<DomInstance>(result);
+						return true;
+					}
+
 				case ManagerStoreStartPagingRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
