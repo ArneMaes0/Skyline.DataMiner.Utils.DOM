@@ -9,6 +9,7 @@
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel.CustomMessages;
 	using Skyline.DataMiner.Net.Apps.Modules;
+	using Skyline.DataMiner.Net.Helper;
 	using Skyline.DataMiner.Net.ManagerStore;
 	using Skyline.DataMiner.Net.Messages;
 	using Skyline.DataMiner.Net.Sections;
@@ -289,57 +290,60 @@
 				case ManagerStoreCreateRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+						var instance = (DomInstance)request.Object.Clone();
 
 						var utcNow = DateTime.UtcNow;
-						((ITrackCreatedAt)request.Object).CreatedAt = utcNow;
-						((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
-						((ITrackLastModified)request.Object).LastModified = utcNow;
-						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+						((ITrackCreatedAt)instance).CreatedAt = utcNow;
+						((ITrackCreatedBy)instance).CreatedBy = "DomSLNetMessageHandler";
+						((ITrackLastModified)instance).LastModified = utcNow;
+						((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 
-						module.TrySetNameOnDomInstance(request.Object);
-						module.Instances[request.Object.ID.SafeId()] = request.Object;
+						module.TrySetNameOnDomInstance(instance);
+						module.Instances[instance.ID.SafeId()] = instance;
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
-						@event.Created.Add(request.Object);
+						@event.Created.Add(instance);
 						OnInstancesChanged?.Invoke(this, @event);
 
-						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
+						response = new ManagerStoreCrudResponse<DomInstance>(instance);
 						return true;
 					}
 
 				case ManagerStoreUpdateRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+						var instance = (DomInstance)request.Object.Clone();
 
 						var utcNow = DateTime.UtcNow;
-						((ITrackLastModified)request.Object).LastModified = utcNow;
-						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
+						((ITrackLastModified)instance).LastModified = utcNow;
+						((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 
-						module.TrySetNameOnDomInstance(request.Object);
-						module.Instances[request.Object.ID.SafeId()] = request.Object;
+						module.TrySetNameOnDomInstance(instance);
+						module.Instances[instance.ID.SafeId()] = instance;
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
-						@event.Updated.Add(request.Object);
+						@event.Updated.Add(instance);
 						OnInstancesChanged?.Invoke(this, @event);
 
-						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
+						response = new ManagerStoreCrudResponse<DomInstance>(instance);
 						return true;
 					}
 
 				case ManagerStoreDeleteRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+						var instance = (DomInstance)request.Object.Clone();
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 
-						if (module.Instances.TryRemove(request.Object.ID.SafeId(), out var removed))
+						if (module.Instances.TryRemove(instance.ID.SafeId(), out var removed))
 						{
-							@event.Deleted.Add(request.Object);
+							@event.Deleted.Add(instance);
 						}
 
 						OnInstancesChanged?.Invoke(this, @event);
 
-						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
+						response = new ManagerStoreCrudResponse<DomInstance>(instance);
 						return true;
 					}
 
@@ -353,12 +357,14 @@
 
 				case ManagerStoreBulkCreateOrUpdateRequest<DomInstance> request:
 					{
-						var module = GetDomModule(request.ModuleId);
 						var utcNow = DateTime.UtcNow;
+
+						var module = GetDomModule(request.ModuleId);
+						var instances = request.Objects.Clone();
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 
-						foreach (var obj in request.Objects)
+						foreach (var obj in instances)
 						{
 							if (!module.Instances.ContainsKey(obj.ID.SafeId()))
 							{
@@ -380,9 +386,9 @@
 
 						OnInstancesChanged?.Invoke(this, @event);
 
-						var traceData = request.Objects.ToDictionary(x => x.ID, x => new TraceData());
+						var traceData = instances.ToDictionary(x => x.ID, x => new TraceData());
 						var unsuccessfulIds = new List<DomInstanceId>();
-						var result = new BulkCreateOrUpdateResult<DomInstance, DomInstanceId>(request.Objects, unsuccessfulIds, traceData);
+						var result = new BulkCreateOrUpdateResult<DomInstance, DomInstanceId>(instances, unsuccessfulIds, traceData);
 
 						response = new ManagerStoreCrudResponse<DomInstance>(result);
 						return true;
@@ -391,27 +397,28 @@
 				case ManagerStoreBulkDeleteRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
+						var instances = request.Objects.Clone();
 
 						var successfulIds = new List<DomInstance>();
 						var unsuccessfulIds = new List<DomInstance>();
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 
-						foreach (var obj in request.Objects)
+						foreach (var instance in instances)
 						{
-							if (module.Instances.TryRemove(obj.ID.SafeId(), out var removed))
+							if (module.Instances.TryRemove(instance.ID.SafeId(), out var removed))
 							{
 								successfulIds.Add(removed);
 								@event.Deleted.Add(removed);
 							}
 							else
 							{
-								unsuccessfulIds.Add(obj);
+								unsuccessfulIds.Add(instance);
 							}
 						}
 
 						OnInstancesChanged?.Invoke(this, @event);
 
-						var traceData = request.Objects.ToDictionary(x => x, x => new TraceData());
+						var traceData = instances.ToDictionary(x => x, x => new TraceData());
 						var result = new BulkDeleteResult<DomInstance>(successfulIds, unsuccessfulIds, traceData);
 
 						response = new ManagerStoreCrudResponse<DomInstance>(result);
