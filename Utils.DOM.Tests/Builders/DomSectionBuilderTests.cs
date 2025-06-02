@@ -63,7 +63,8 @@ namespace Utils.DOM.Tests
 		[TestMethod]
 		public void DomSectionBuilder_WithFieldValue3()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var section = new DomSectionBuilder(TestData.SectionDefinition1)
 				.WithFieldValue("Field 1", "my value", cache)

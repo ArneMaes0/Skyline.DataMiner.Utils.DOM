@@ -8,16 +8,17 @@
 	using Skyline.DataMiner.Utils.DOM.Extensions;
 	using Skyline.DataMiner.Utils.DOM.UnitTesting;
 
-	public static class TestData
+	public class TestData
 	{
-		static TestData()
+		public TestData()
 		{
+			DomHelper = DomHelperMock.Create();
 			DomHelper.SetDefinitions(new[] { Definition1 });
 			DomHelper.SetSectionDefinitions(new[] { SectionDefinition1, SectionDefinition2 });
 			DomHelper.SetInstances(new[] { Instance1, Instance2 });
 		}
 
-		public static DomHelperMock DomHelper { get; } = DomHelperMock.Create();
+		public DomHelperMock DomHelper { get; }
 
 		public static DomDefinition Definition1 { get; } = new DomDefinitionBuilder()
 			.WithID(Guid.Parse("fc13f9fb-02d4-4158-9186-d72317be5aa7"))

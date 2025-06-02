@@ -24,10 +24,10 @@
 
 		public ModuleSettings Settings { get; set; }
 
-		public ConcurrentDictionary<Guid, DomDefinition> Definitions { get; } = new ConcurrentDictionary<Guid, DomDefinition>();
-		public ConcurrentDictionary<Guid, SectionDefinition> SectionDefinitions { get; } = new ConcurrentDictionary<Guid, SectionDefinition>();
-		public ConcurrentDictionary<Guid, DomInstance> Instances { get; } = new ConcurrentDictionary<Guid, DomInstance>();
-		public ConcurrentDictionary<Guid, DomBehaviorDefinition> BehaviorDefinitions { get; } = new ConcurrentDictionary<Guid, DomBehaviorDefinition>();
+		public ConcurrentDictionary<DomDefinitionId, DomDefinition> Definitions { get; } = new ConcurrentDictionary<DomDefinitionId, DomDefinition>();
+		public ConcurrentDictionary<SectionDefinitionID, SectionDefinition> SectionDefinitions { get; } = new ConcurrentDictionary<SectionDefinitionID, SectionDefinition>();
+		public ConcurrentDictionary<DomInstanceId, DomInstance> Instances { get; } = new ConcurrentDictionary<DomInstanceId, DomInstance>();
+		public ConcurrentDictionary<DomBehaviorDefinitionId, DomBehaviorDefinition> BehaviorDefinitions { get; } = new ConcurrentDictionary<DomBehaviorDefinitionId, DomBehaviorDefinition>();
 		public ConcurrentDictionary<PagingCookie, DomPagingHandler<DomInstance>> PagingHandlers { get; } = new ConcurrentDictionary<PagingCookie, DomPagingHandler<DomInstance>>();
 
 		public void TrySetNameOnDomInstance(DomInstance instance)
@@ -39,7 +39,7 @@
 
 			var nameDefinition = Settings?.DomManagerSettings?.DomInstanceNameDefinition;
 
-			if (Definitions.TryGetValue(instance.DomDefinitionId.Id, out var definition) &&
+			if (Definitions.TryGetValue(instance.DomDefinitionId, out var definition) &&
 				definition.ModuleSettingsOverrides?.NameDefinition != null)
 			{
 				nameDefinition = definition.ModuleSettingsOverrides.NameDefinition;

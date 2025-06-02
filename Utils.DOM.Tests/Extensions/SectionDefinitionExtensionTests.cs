@@ -13,7 +13,8 @@
 		[TestMethod]
 		public void SectionDefinition_GetByID()
 		{
-			var mock = TestData.DomHelper;
+			var testData = new TestData();
+			var mock = testData.DomHelper;
 
 			var definition = mock.SectionDefinitions.GetByID(TestData.SectionDefinition1.GetID().Id);
 
@@ -23,7 +24,8 @@
 		[TestMethod]
 		public void SectionDefinition_GetByName()
 		{
-			var mock = TestData.DomHelper;
+			var testData = new TestData();
+			var mock = testData.DomHelper;
 
 			var definition = mock.SectionDefinitions.GetByName(TestData.SectionDefinition1.GetName());
 

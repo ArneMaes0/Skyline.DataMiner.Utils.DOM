@@ -12,7 +12,8 @@
 		[TestMethod]
 		public void DomDefinition_GetByID()
 		{
-			var mock = TestData.DomHelper;
+			var testData = new TestData();
+			var mock = testData.DomHelper;
 
 			var definition = mock.DomDefinitions.GetByID(TestData.Definition1.ID.Id);
 
@@ -22,7 +23,8 @@
 		[TestMethod]
 		public void DomDefinition_GetByName()
 		{
-			var mock = TestData.DomHelper;
+			var testData = new TestData();
+			var mock = testData.DomHelper;
 
 			var definition = mock.DomDefinitions.GetByName(TestData.Definition1.Name);
 

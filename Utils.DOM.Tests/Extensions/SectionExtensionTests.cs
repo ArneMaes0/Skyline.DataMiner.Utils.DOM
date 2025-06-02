@@ -16,7 +16,8 @@
 		[TestMethod]
 		public void Section_GetFieldValue()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var section = TestData.Instance1.Sections.First();
 
@@ -28,7 +29,8 @@
 		[TestMethod]
 		public void Section_SetFieldValue()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var section = TestData.Instance1.Sections.First();
 

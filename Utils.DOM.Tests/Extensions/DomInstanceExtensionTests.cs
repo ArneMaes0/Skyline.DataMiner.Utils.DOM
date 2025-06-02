@@ -8,6 +8,7 @@
 	using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
+	using Skyline.DataMiner.Net.ManagerStore;
 	using Skyline.DataMiner.Net.Sections;
 	using Skyline.DataMiner.Utils.DOM;
 	using Skyline.DataMiner.Utils.DOM.Extensions;
@@ -18,7 +19,8 @@
 		[TestMethod]
 		public void DomInstance_GetByID()
 		{
-			var mock = TestData.DomHelper;
+			var testData = new TestData();
+			var mock = testData.DomHelper;
 
 			var instance = mock.DomInstances.GetByID(TestData.Instance1.ID.Id);
 
@@ -28,11 +30,25 @@
 		[TestMethod]
 		public void DomInstance_ReadAll()
 		{
-			var mock = TestData.DomHelper;
+			var testData = new TestData();
+			var mock = testData.DomHelper;
 
 			var instances = mock.DomInstances.ReadAll(TestData.Definition1);
 
 			instances.Should().BeEquivalentTo(new[] { TestData.Instance1, TestData.Instance2 });
+		}
+
+		[TestMethod]
+		public void DomInstance_DeleteInBatches()
+		{
+			var testData = new TestData();
+			var mock = testData.DomHelper;
+
+			var instances = mock.DomInstances.ReadAll();
+			var result = mock.DomInstances.DeleteInBatches(instances);
+
+			Assert.AreEqual(2, result.SuccessfulIds.Count);
+			Assert.AreEqual(0, result.UnsuccessfulIds.Count);
 		}
 
 		[TestMethod]
@@ -50,7 +66,9 @@
 		[TestMethod]
 		public void DomInstance_GetSectionsWithDefinitionName()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
+
 			var sections = TestData.Instance2.GetSectionsWithDefinition("Section Definition 2", cache);
 
 			sections.Select(x => x.ID).Should().BeEquivalentTo(new[]
@@ -63,7 +81,8 @@
 		[TestMethod]
 		public void DomInstance_GetFieldValue()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var value = TestData.Instance2.GetFieldValue<int>("Section Definition 1", "Field 2", cache);
 
@@ -73,7 +92,8 @@
 		[TestMethod]
 		public void DomInstance_SetFieldValue()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			// clone the instance to avoid interference with other tests
 			var instance = TestData.Instance2.Clone() as DomInstance;

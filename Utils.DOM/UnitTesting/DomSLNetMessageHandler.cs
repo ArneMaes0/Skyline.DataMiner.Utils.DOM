@@ -58,7 +58,7 @@
 
 			foreach (var definition in definitions)
 			{
-				module.Definitions.TryAdd(definition.ID.SafeId(), definition);
+				module.Definitions.TryAdd(definition.ID, definition);
 			}
 		}
 
@@ -86,7 +86,7 @@
 
 			foreach (var definition in sectionDefinitions)
 			{
-				module.SectionDefinitions.TryAdd(definition.GetID().SafeId(), definition);
+				module.SectionDefinitions.TryAdd(definition.GetID(), definition);
 			}
 		}
 
@@ -115,7 +115,7 @@
 			foreach (var instance in instances)
 			{
 				module.TrySetNameOnDomInstance(instance);
-				module.Instances.TryAdd(instance.ID.SafeId(), instance);
+				module.Instances.TryAdd(instance.ID, instance);
 			}
 		}
 
@@ -143,7 +143,7 @@
 
 			foreach (var definition in definitions)
 			{
-				module.BehaviorDefinitions.TryAdd(definition.ID.SafeId(), definition);
+				module.BehaviorDefinitions.TryAdd(definition.ID, definition);
 			}
 		}
 
@@ -207,7 +207,7 @@
 						((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
 						((ITrackLastModified)request.Object).LastModified = utcNow;
 						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
-						module.Definitions[request.Object.ID.SafeId()] = request.Object;
+						module.Definitions[request.Object.ID] = request.Object;
 						response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
 						return true;
 					}
@@ -218,7 +218,7 @@
 						var utcNow = DateTime.UtcNow;
 						((ITrackLastModified)request.Object).LastModified = utcNow;
 						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
-						module.Definitions[request.Object.ID.SafeId()] = request.Object;
+						module.Definitions[request.Object.ID] = request.Object;
 						response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
 						return true;
 					}
@@ -226,7 +226,7 @@
 				case ManagerStoreDeleteRequest<DomDefinition> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						module.Definitions.TryRemove(request.Object.ID.SafeId(), out _);
+						module.Definitions.TryRemove(request.Object.ID, out _);
 						response = new ManagerStoreCrudResponse<DomDefinition>(request.Object);
 						return true;
 					}
@@ -251,7 +251,7 @@
 						((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
 						((ITrackLastModified)request.Object).LastModified = utcNow;
 						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
-						module.SectionDefinitions[request.Object.GetID().SafeId()] = request.Object;
+						module.SectionDefinitions[request.Object.GetID()] = request.Object;
 						response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
 						return true;
 					}
@@ -262,7 +262,7 @@
 						var utcNow = DateTime.UtcNow;
 						((ITrackLastModified)request.Object).LastModified = utcNow;
 						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
-						module.SectionDefinitions[request.Object.GetID().SafeId()] = request.Object;
+						module.SectionDefinitions[request.Object.GetID()] = request.Object;
 						response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
 						return true;
 					}
@@ -270,7 +270,7 @@
 				case ManagerStoreDeleteRequest<SectionDefinition> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						module.SectionDefinitions.TryRemove(request.Object.GetID().SafeId(), out _);
+						module.SectionDefinitions.TryRemove(request.Object.GetID(), out _);
 						response = new ManagerStoreCrudResponse<SectionDefinition>(request.Object);
 						return true;
 					}
@@ -299,7 +299,7 @@
 						((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 
 						module.TrySetNameOnDomInstance(instance);
-						module.Instances[instance.ID.SafeId()] = instance;
+						module.Instances[instance.ID] = instance;
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 						@event.Created.Add(instance);
@@ -319,7 +319,7 @@
 						((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 
 						module.TrySetNameOnDomInstance(instance);
-						module.Instances[instance.ID.SafeId()] = instance;
+						module.Instances[instance.ID] = instance;
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 						@event.Updated.Add(instance);
@@ -336,7 +336,7 @@
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 
-						if (module.Instances.TryRemove(instance.ID.SafeId(), out var removed))
+						if (module.Instances.TryRemove(instance.ID, out var removed))
 						{
 							@event.Deleted.Add(instance);
 						}
@@ -366,7 +366,7 @@
 
 						foreach (var obj in instances)
 						{
-							if (!module.Instances.ContainsKey(obj.ID.SafeId()))
+							if (!module.Instances.ContainsKey(obj.ID))
 							{
 								@event.Created.Add(obj);
 								((ITrackCreatedAt)obj).CreatedAt = utcNow;
@@ -381,7 +381,7 @@
 							((ITrackLastModifiedBy)obj).LastModifiedBy = "DomSLNetMessageHandler";
 
 							module.TrySetNameOnDomInstance(obj);
-							module.Instances[obj.ID.SafeId()] = obj;
+							module.Instances[obj.ID] = obj;
 						}
 
 						OnInstancesChanged?.Invoke(this, @event);
@@ -399,27 +399,29 @@
 						var module = GetDomModule(request.ModuleId);
 						var instances = request.Objects.Clone();
 
-						var successfulIds = new List<DomInstance>();
-						var unsuccessfulIds = new List<DomInstance>();
+						var successfulIds = new List<DomInstanceId>();
+						var unsuccessfulIds = new List<DomInstanceId>();
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 
 						foreach (var instance in instances)
 						{
-							if (module.Instances.TryRemove(instance.ID.SafeId(), out var removed))
+							var instanceId = instance.ID;
+
+							if (module.Instances.TryRemove(instanceId, out var removed))
 							{
-								successfulIds.Add(removed);
+								successfulIds.Add(instanceId);
 								@event.Deleted.Add(removed);
 							}
 							else
 							{
-								unsuccessfulIds.Add(instance);
+								unsuccessfulIds.Add(instanceId);
 							}
 						}
 
 						OnInstancesChanged?.Invoke(this, @event);
 
-						var traceData = instances.ToDictionary(x => x, x => new TraceData());
-						var result = new BulkDeleteResult<DomInstance>(successfulIds, unsuccessfulIds, traceData);
+						var traceData = instances.ToDictionary(x => x.ID, x => new TraceData());
+						var result = new BulkDeleteResult<DomInstanceId>(successfulIds, unsuccessfulIds, traceData);
 
 						response = new ManagerStoreCrudResponse<DomInstance>(result);
 						return true;
@@ -484,7 +486,7 @@
 						((ITrackCreatedBy)request.Object).CreatedBy = "DomSLNetMessageHandler";
 						((ITrackLastModified)request.Object).LastModified = utcNow;
 						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
-						module.BehaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
+						module.BehaviorDefinitions[request.Object.ID] = request.Object;
 						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
 						return true;
 					}
@@ -495,7 +497,7 @@
 						var utcNow = DateTime.UtcNow;
 						((ITrackLastModified)request.Object).LastModified = utcNow;
 						((ITrackLastModifiedBy)request.Object).LastModifiedBy = "DomSLNetMessageHandler";
-						module.BehaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
+						module.BehaviorDefinitions[request.Object.ID] = request.Object;
 						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
 						return true;
 					}
@@ -503,7 +505,7 @@
 				case ManagerStoreDeleteRequest<DomBehaviorDefinition> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						module.BehaviorDefinitions.TryRemove(request.Object.ID.SafeId(), out _);
+						module.BehaviorDefinitions.TryRemove(request.Object.ID, out _);
 						response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
 						return true;
 					}
@@ -578,17 +580,17 @@
 		{
 			var module = GetDomModule(request.ModuleId);
 
-			if (!module.Instances.TryGetValue(request.DomInstanceId.Id, out var instance))
+			if (!module.Instances.TryGetValue(request.DomInstanceId, out var instance))
 			{
 				throw new InvalidOperationException($"Couldn't find instance with ID '{request.DomInstanceId.Id}'");
 			}
 
-			if (!module.Definitions.TryGetValue(instance.DomDefinitionId.Id, out var definition))
+			if (!module.Definitions.TryGetValue(instance.DomDefinitionId, out var definition))
 			{
 				throw new InvalidOperationException($"Couldn't find definition with ID '{instance.DomDefinitionId.Id}'");
 			}
 
-			if (!module.BehaviorDefinitions.TryGetValue(definition.DomBehaviorDefinitionId.Id, out var behavior))
+			if (!module.BehaviorDefinitions.TryGetValue(definition.DomBehaviorDefinitionId, out var behavior))
 			{
 				throw new InvalidOperationException($"Couldn't find behavior with ID '{definition.DomBehaviorDefinitionId.Id}'");
 			}

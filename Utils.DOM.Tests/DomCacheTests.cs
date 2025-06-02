@@ -19,7 +19,8 @@
 		[TestMethod]
 		public void DomCache_GetInstanceById()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var instance = cache.GetInstanceById(TestData.Instance1.ID.Id);
 
@@ -29,7 +30,8 @@
 		[TestMethod]
 		public void DomCache_GetInstancesById()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var instances = cache.GetInstancesById(new[] { TestData.Instance1.ID.Id, TestData.Instance2.ID.Id });
 
@@ -45,7 +47,8 @@
 		[TestMethod]
 		public void DomCache_GetInstancesByFilter()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var filter = DomInstanceExposers.FieldValues
 				.DomInstanceField(TestData.SectionDefinition1.GetFieldDescriptorByName("Field 1"))
@@ -59,7 +62,8 @@
 		[TestMethod]
 		public void DomCache_GetInstancesByDefinition()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var instances = cache.GetInstancesByDefinition("Definition 1");
 
@@ -69,7 +73,8 @@
 		[TestMethod]
 		public void DomCache_GetDefinitionById()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var definition = cache.GetDefinitionById(TestData.Definition1.ID.Id);
 
@@ -79,7 +84,8 @@
 		[TestMethod]
 		public void DomCache_GetDefinitionByName()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var definition = cache.GetDefinitionByName(TestData.Definition1.Name);
 
@@ -89,7 +95,8 @@
 		[TestMethod]
 		public void DomCache_GetSectionDefinitionById()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var sectionDefinition = cache.GetSectionDefinitionById(TestData.SectionDefinition1.GetID().Id);
 
@@ -99,7 +106,8 @@
 		[TestMethod]
 		public void DomCache_GetSectionDefinitionByName()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var sectionDefinition = cache.GetSectionDefinitionByName(TestData.SectionDefinition1.GetName());
 
@@ -109,7 +117,8 @@
 		[TestMethod]
 		public void DomCache_GetFieldDescriptor()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var fieldDescriptor = cache.GetFieldDescriptor(TestData.SectionDefinition1.GetID(), TestData.SectionDefinition1.GetFieldDescriptorByName("Field 1").ID);
 
@@ -120,7 +129,8 @@
 		[TestMethod]
 		public void DomCache_GetFieldDescriptorByName()
 		{
-			var cache = new DomCache(TestData.DomHelper);
+			var testData = new TestData();
+			var cache = new DomCache(testData.DomHelper);
 
 			var fieldDescriptor = cache.GetFieldDescriptorByName("Section Definition 1", "Field 1");
 
