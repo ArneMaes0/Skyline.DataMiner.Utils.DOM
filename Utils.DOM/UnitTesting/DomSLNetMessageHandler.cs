@@ -299,7 +299,11 @@
 						((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 
 						module.TrySetNameOnDomInstance(instance);
-						module.Instances[instance.ID] = instance;
+
+						if (!module.Instances.TryAdd(instance.ID, instance))
+						{
+							throw new InvalidOperationException($"Instance with ID '{instance.ID.Id}' already exists in module '{request.ModuleId}'.");
+						}
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 						@event.Created.Add(instance);
@@ -319,6 +323,12 @@
 						((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 
 						module.TrySetNameOnDomInstance(instance);
+
+						if (!module.Instances.ContainsKey(instance.ID))
+						{
+							throw new InvalidOperationException($"Instance with ID '{instance.ID.Id}' not found in module '{request.ModuleId}'.");
+						}
+
 						module.Instances[instance.ID] = instance;
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
@@ -339,6 +349,10 @@
 						if (module.Instances.TryRemove(instance.ID, out var removed))
 						{
 							@event.Deleted.Add(instance);
+						}
+						else
+						{
+							throw new InvalidOperationException($"Instance with ID '{instance.ID.Id}' not found in module '{request.ModuleId}'.");
 						}
 
 						OnInstancesChanged?.Invoke(this, @event);
