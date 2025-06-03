@@ -134,7 +134,7 @@
 			domWatcher.OnChanged -= handler;
 
 			// Assert
-			Assert.IsFalse(domWatcher.HasOnOnChangedSubscribers);
+			Assert.IsFalse(domWatcher.HasOnChangedSubscribers);
 			Assert.IsFalse(connection.HasOnNewMessageSubscribers);
 		}
 	}

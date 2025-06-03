@@ -112,6 +112,9 @@
 		public event EventHandler<SubscriptionStateEventArgs> OnSubscriptionState;
 #pragma warning restore 67
 
+		/// <summary>
+		/// For unit testing purposes.
+		/// </summary>
 		internal bool HasOnNewMessageSubscribers => OnNewMessage?.GetInvocationList().Any() ?? false;
 
 		/// <inheritdoc/>

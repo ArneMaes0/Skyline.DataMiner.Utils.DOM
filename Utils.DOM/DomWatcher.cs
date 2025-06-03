@@ -92,7 +92,7 @@
 		/// <summary>
 		/// For unit testing purposes.
 		/// </summary>
-		internal bool HasOnOnChangedSubscribers => Changed?.GetInvocationList().Any() ?? false;
+		internal bool HasOnChangedSubscribers => Changed?.GetInvocationList().Any() ?? false;
 
 		/// <summary>
 		/// Disposes the watcher, removing any active subscriptions.
