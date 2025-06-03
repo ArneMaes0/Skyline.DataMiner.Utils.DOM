@@ -130,6 +130,9 @@
 			EventHandler<DomInstancesChangedEventMessage> handler = (s, e) => throw new NotImplementedException();
 			domWatcher.OnChanged += handler;
 
+			Assert.IsTrue(domWatcher.HasOnChangedSubscribers);
+			Assert.IsTrue(connection.HasOnNewMessageSubscribers);
+
 			// Act
 			domWatcher.OnChanged -= handler;
 
