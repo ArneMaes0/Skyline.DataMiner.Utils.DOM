@@ -1,6 +1,7 @@
 ﻿namespace Skyline.DataMiner.Utils.DOM
 {
 	using System;
+	using System.Linq;
 
 	using Skyline.DataMiner.Net;
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
@@ -18,8 +19,6 @@
 
 		private readonly string _subscriptionSetId;
 		private readonly SubscriptionFilter[] _subscriptionFilters;
-
-		private int _subscriberCount;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DomWatcher"/> class.
@@ -60,8 +59,16 @@
 			{
 				lock (_lock)
 				{
-					CheckAndSubscribe();
+					var subscribe = Changed == null;
+
 					Changed += value;
+
+					if (subscribe)
+					{
+						_connection.OnNewMessage += Connection_OnNewMessage;
+						_connection.AddSubscription(_subscriptionSetId, _subscriptionFilters);
+						_connection.Subscribe();
+					}
 				}
 			}
 
@@ -70,12 +77,22 @@
 				lock (_lock)
 				{
 					Changed -= value;
-					CheckAndUnsubscribe();
+
+					if (Changed == null)
+					{
+						_connection.ClearSubscriptions(_subscriptionSetId);
+						_connection.OnNewMessage -= Connection_OnNewMessage;
+					}
 				}
 			}
 		}
 
 		private event EventHandler<DomInstancesChangedEventMessage> Changed;
+
+		/// <summary>
+		/// For unit testing purposes.
+		/// </summary>
+		internal bool HasOnOnChangedSubscribers => Changed?.GetInvocationList().Any() ?? false;
 
 		/// <summary>
 		/// Disposes the watcher, removing any active subscriptions.
@@ -84,6 +101,7 @@
 		{
 			_connection.ClearSubscriptions(_subscriptionSetId);
 			_connection.OnNewMessage -= Connection_OnNewMessage;
+			Changed = null;
 		}
 
 		private void Connection_OnNewMessage(object sender, NewMessageEventArgs e)
@@ -97,29 +115,6 @@
 			if (e.Message is DomInstancesChangedEventMessage domChange)
 			{
 				Changed?.Invoke(this, domChange);
-			}
-		}
-
-		private void CheckAndSubscribe()
-		{
-			if (_subscriberCount <= 0)
-			{
-				_connection.OnNewMessage += Connection_OnNewMessage;
-				_connection.AddSubscription(_subscriptionSetId, _subscriptionFilters);
-				_connection.Subscribe();
-			}
-
-			_subscriberCount++;
-		}
-
-		private void CheckAndUnsubscribe()
-		{
-			_subscriberCount--;
-
-			if (_subscriberCount <= 0)
-			{
-				_connection.ClearSubscriptions(_subscriptionSetId);
-				_connection.OnNewMessage -= Connection_OnNewMessage;
 			}
 		}
 	}

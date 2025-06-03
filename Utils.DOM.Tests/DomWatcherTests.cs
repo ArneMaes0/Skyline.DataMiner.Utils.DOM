@@ -117,5 +117,25 @@
 			CollectionAssert.AreEquivalent(Array.Empty<DomInstance>(), receivedEvent.Updated);
 			CollectionAssert.AreEquivalent(new[] { TestData.Instance1 }, receivedEvent.Deleted);
 		}
+
+		[TestMethod]
+		public void DomWatcher_Cleanup()
+		{
+			// Arrange
+			var connection = new DomConnectionMock();
+
+			var filter = new TRUEFilterElement<DomInstance>();
+			using var domWatcher = new DomWatcher("module", filter, connection);
+
+			EventHandler<DomInstancesChangedEventMessage> handler = (s, e) => throw new NotImplementedException();
+			domWatcher.OnChanged += handler;
+
+			// Act
+			domWatcher.OnChanged -= handler;
+
+			// Assert
+			Assert.IsFalse(domWatcher.HasOnOnChangedSubscribers);
+			Assert.IsFalse(connection.HasOnNewMessageSubscribers);
+		}
 	}
 }

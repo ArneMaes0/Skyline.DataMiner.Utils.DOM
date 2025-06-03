@@ -112,6 +112,8 @@
 		public event EventHandler<SubscriptionStateEventArgs> OnSubscriptionState;
 #pragma warning restore 67
 
+		internal bool HasOnNewMessageSubscribers => OnNewMessage?.GetInvocationList().Any() ?? false;
+
 		/// <inheritdoc/>
 		public DMSMessage[] HandleMessage(DMSMessage msg)
 		{
