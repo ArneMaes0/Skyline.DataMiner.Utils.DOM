@@ -283,7 +283,7 @@
 					{
 						var module = GetDomModule(request.ModuleId);
 						var instances = request.Query.ExecuteInMemory(module.Instances.Values).ToList();
-						response = new ManagerStoreCrudResponse<DomInstance>(instances);
+						response = new ManagerStoreCrudResponse<DomInstance>(instances.Clone());
 						return true;
 					}
 
@@ -445,7 +445,7 @@
 					{
 						var module = GetDomModule(request.ModuleId);
 						var instances = request.Filter.ExecuteInMemory(module.Instances.Values).ToList();
-						var pagingHandler = new DomPagingHandler<DomInstance>(instances);
+						var pagingHandler = new DomPagingHandler<DomInstance>(instances.Clone());
 						module.PagingHandlers.TryAdd(pagingHandler.Cookie, pagingHandler);
 
 						var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
