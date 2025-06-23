@@ -69,8 +69,7 @@
 
 					OnNewMessage?.Invoke(
 						this,
-						new NewMessageEventArgs(
-							new EventWithSetIDs(new[] { subscription.SetId }, e)));
+						new NewMessageEventArgs(eventWithSetIds));
 				}
 			}
 		}
